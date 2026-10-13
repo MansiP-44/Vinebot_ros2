@@ -43,6 +43,7 @@ sudo ufw disable
 ```
 
 3. Set a static IP manually on the host machine:
+    Configure following network settings according to the host machine's network interface:
    - IP address: `192.168.2.1`
    - Subnet mask: `255.255.255.0`
    - Gateway: `192.168.1.1`
