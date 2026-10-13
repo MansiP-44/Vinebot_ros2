@@ -1,0 +1,26 @@
+colcon build --packages-select livox_ros_driver2 --cmake-args -DROS_EDITION=ROS2 -DHUMBLE_ROS=humble
+colcon build --packages-select vineslam vineslam_ros --cmake-args -DCMAKE_BUILD_TYPE=Release -DLIDAR_TYPE=4
+
+colcon build --packages-select ps4_ros2 roboteq serial vinebot_description vineslam vineslam_ros
+
+
+
+ ros2 launch livox_ros_driver2 msg_MID360_launch.py 
+ ros2 run bno055 bno055 --ros-args --params-file ./src/bno055/bno055/params/bno055_params.yaml
+
+ros2 launch ublox_gps ublox_gps_node-launch.py 
+ros2 launch src/vineslam_latest/vineslam/test/test_slam_node/run.launch.py 
+
+sudo chown -R $USER:$USER /home/irobot/Mansi/VineBot/VineSlamOutput
+
+
+/// for running rtabmap slam
+ros2 launch realsense2_camera rs_launch.py unite_imu_method:=2 enable_rgbd:=true enable_color:=true enable_depth:=true enable_sync:=true align_depth.enable:=true unite_imu_method:=2 enable_gyro:=true enable_accel:=true
+ros2 run imu_filter_madgwick imu_filter_madgwick_node   --ros-args   -p use_mag:=false   -p publish_tf:=false   -p world_frame:="enu" --remap /imu/data_raw:=/camera/camera/imu
+ros2 launch rtabmap_launch rtabmap.launch.py     rtabmap_args:="--delete_db_on_start"     rgb_topic:=/camera/camera/color/image_raw     depth_topic:=/camera/camera/rgbd     camera_info_topic:=/camera/camera/color/camera_info     frame_id:=camera_base_link     approx_sync:=true     wait_imu_to_init:=true     imu_topic:=/imu/data     rviz:=true
+
+
+//for running rtabmap_odometry just  to obtain visual odoemtry:
+
+ros2 launch realsense2_camera rs_launch.py   enable_depth:=true   enable_color:=true   align_depth.enable:=true
+ros2 run rtabmap_odom rgbd_odometry --ros-args -r /rgb/image:=/camera/camera/color/image_raw -r  /depth/image:=/camera/camera/aligned_depth_to_color/image_raw  -r /rgb/camera_info:=/camera/camera/color/camera_info
